@@ -118,9 +118,15 @@ use of the information given by trying that password. We can eliminate all nodes
 that don't have the right edge-weight next to a certain node. First, we must
 identify all nodes which we should keep.
 
+\begin{code}
+correct_weight :: (Eq a, Eq t) => Graph a t -> a -> t -> Maybe [a]
+correct_weight [] _ _      = Nothing
+correct_weight (n:ns) word match
+  | (content n) == word    = Just $ map fst $ filter ((match ==) . snd) $ edges n
+  | otherwise              = correct_weight ns word match
+\end{code}
 
-
-
+Now we can use comp_graph again to build the new graph.
 
 
 
