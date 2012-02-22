@@ -1,7 +1,10 @@
 Program for playing Fallout 3's "terminal hacking" minigame
 
 \begin{code}
+module Main where
 import List (sort)
+import Maybe (fromJust, isNothing, isJust)
+
 \end{code}
 
 The set of available passwords is represented as a complete graph with a node for
@@ -128,8 +131,39 @@ correct_weight (n:ns) word match
 
 Now we can use comp_graph again to build the new graph.
 
+The main function serves to prime the input/output for the main_loop function,
+which repeatedly gives a guess, asks how correct it was, and then updates its
+internal graph.
 
+\begin{code}
+main = do
+        putStrLn "Enter list of possible passwords (in Haskell's list notation)"
+        input <- getLine
+        let init_list = read input :: [String]
+        let graph = (comp_graph char_match init_list) :: Graph String Int
+        main_loop graph
 
-
-
+main_loop :: Graph String Int -> IO ()
+main_loop graph = do
+        let guess = password_guess graph
+        if (isNothing guess) then do
+                putStrLn "Graph is empty -- no possibilities left"
+                return ()
+        else do
+                let final_guess = fromJust guess
+                putStrLn $ "Best guess is " ++ final_guess
+                putStrLn "How many match?"
+                input <- getLine
+                let match = read input :: Int
+                let new_words = correct_weight graph final_guess match
+                if (isNothing new_words) then do
+                        putStrLn "No possibilities left"
+                        return ()
+                else if (1 == length (fromJust new_words)) then do
+                        putStrLn $ "Final possibility is " ++ (head (fromJust new_words))
+                else do
+                        let final_new_words = fromJust new_words
+                        let new_graph = comp_graph char_match final_new_words
+                        main_loop new_graph
+\end{code}
 
